@@ -1,6 +1,7 @@
 package com.jinku.fsm.example;
 
 import com.jinku.fsm.core.StateAutoSync;
+import com.jinku.fsm.core.StateListener;
 import com.jinku.fsm.core.StateManager;
 import com.jinku.fsm.core.StateOperation;
 
@@ -77,9 +78,25 @@ public class LocalStateManager extends StateManager {
         }
     }
 
+    /**
+     * 本地状态管理器 调用示例
+     *
+     * @param args
+     */
     public static void main(String[] args) {
         LocalStateManager localStateManager = new LocalStateManager();
         final String localManagerKey = localStateManager.managerKey();
+
+        /**
+         * 注册状态变化监听器
+         */
+        localStateManager.registerListener(new StateListener() {
+            @Override
+            public void stateChanged(String uuid, int preState, int postState) {
+                // do something
+            }
+        });
+
         String uuid = "123";
         //
         localStateManager.doOperation(uuid, new StateOperation() {

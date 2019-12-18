@@ -72,21 +72,11 @@ public abstract class StateManager {
         System.out.println(managerKey() + " manual do: currentState=" + current);
         System.out.println(managerKey() + " manual do: do something");
         int newState = stateOperation.operation(uuid);
-        System.out.println(managerKey()  + " manual do: newState=" + newState);
+        System.out.println(managerKey() + " manual do: newState=" + newState);
         boolean isSuccess = setState(uuid, newState, current);
         System.out.println(managerKey() + " manual do: setState result=" + isSuccess);
         if (isSuccess) {
-            try {
-                // 通知
-                List<StateListener> innerListeners = new ArrayList<>(listeners);
-                for (StateListener listener : innerListeners) {
-                    System.out.println(managerKey() + " autoSync: notify listener;oldState=" + current + ";newState=" + newState);
-                    listener.stateChanged(uuid, current, newState);
-                }
-            } catch (Exception e) {
-                System.err.print(managerKey() + " manual do: notify listener exception");
-                e.printStackTrace();
-            }
+            notifyListeners(uuid, current, newState);
         }
     }
 
@@ -119,23 +109,27 @@ public abstract class StateManager {
             boolean isSuccess = setState(uuid, newState, current);
             System.out.println(managerKey() + " autoSync: setState result=" + isSuccess);
 
-            try {
-                // 通知
-                List<StateListener> innerListeners = new ArrayList<>(listeners);
-                for (StateListener listener : innerListeners) {
-                    System.out.println(managerKey() + " autoSync: notify listener;oldState=" + current + ";newState=" + newState);
-                    listener.stateChanged(uuid, current, newState);
-                }
-            } catch (Exception e) {
-                System.err.print(managerKey() + " autoSync: notify listener exception");
-                e.printStackTrace();
-            }
+            notifyListeners(uuid, current, newState);
 
             if (isSuccess) {
                 current = newState;
             } else {
                 current = currentState(uuid);
             }
+        }
+    }
+
+    private void notifyListeners(String uuid, int current, int newState) {
+        try {
+            // 通知
+            List<StateListener> innerListeners = new ArrayList<>(listeners);
+            for (StateListener listener : innerListeners) {
+                System.out.println(managerKey() + " notify listener; uuid=" + uuid + ";oldState=" + current + ";newState=" + newState);
+                listener.stateChanged(uuid, current, newState);
+            }
+        } catch (Exception e) {
+            System.err.print(managerKey() + " notify listener exception");
+            e.printStackTrace();
         }
     }
 }
