@@ -1,14 +1,12 @@
 package com.jinku.fsm.core;
 
-import com.jinku.fsm.example.LocalStateManager;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class StateManager {
 
     private List<StateListener> listeners = new ArrayList<>();
-    private List<StateOperation> autoOperations = new ArrayList<>();
+    private List<StateTransition> autoTransitions = new ArrayList<>();
 
     /**
      * 状态管理器标识
@@ -22,7 +20,7 @@ public abstract class StateManager {
      *
      * @return
      */
-    public abstract int currentState(String uuid);
+    protected abstract int currentState(String uuid);
 
     /**
      * 更新状态
@@ -31,7 +29,7 @@ public abstract class StateManager {
      * @param newState
      * @param expectState
      */
-    public abstract boolean setState(String uuid, int newState, int expectState);
+    protected abstract boolean setState(String uuid, int newState, int expectState);
 
     /**
      * 注册状态监听器
@@ -46,32 +44,32 @@ public abstract class StateManager {
     }
 
     /**
-     * 注册自动状态转换操作
+     * 注册自动状态转换动作
      *
-     * @param operation
+     * @param transition
      */
-    public synchronized void registerAutoOp(StateOperation operation) {
-        if (autoOperations.contains(operation)) {
+    public synchronized void registerAutoTransition(StateTransition transition) {
+        if (autoTransitions.contains(transition)) {
             return;
         }
-        autoOperations.add(operation);
+        autoTransitions.add(transition);
     }
 
     /**
      * 执行状态转换操作
      *
      * @param uuid
-     * @param stateOperation
+     * @param transition
      */
-    public void doOperation(String uuid, StateOperation stateOperation) {
+    public void doOperation(String uuid, StateTransition transition) {
         int current = currentState(uuid);
-        if (!stateOperation.preState().contains(current)) {
+        if (!transition.preState().contains(current)) {
             return;
         }
 
         System.out.println(managerKey() + " manual do: currentState=" + current);
         System.out.println(managerKey() + " manual do: do something");
-        int newState = stateOperation.operation(uuid);
+        int newState = transition.operation(uuid);
         System.out.println(managerKey() + " manual do: newState=" + newState);
         boolean isSuccess = setState(uuid, newState, current);
         System.out.println(managerKey() + " manual do: setState result=" + isSuccess);
@@ -86,25 +84,25 @@ public abstract class StateManager {
      * @param uuid
      */
     public void autoSyncState(String uuid) {
-        List<StateOperation> innerAutoOperations = new ArrayList<>(autoOperations);
-        if (innerAutoOperations.size() == 0) {
+        List<StateTransition> innerAutoTransitions = new ArrayList<>(autoTransitions);
+        if (innerAutoTransitions.size() == 0) {
             return;
         }
 
         int current = currentState(uuid);
         while (true) {
-            StateOperation matchedOperation = null;
-            for (StateOperation stateOperation : innerAutoOperations) {
-                if (stateOperation.preState().contains(current)) {
-                    matchedOperation = stateOperation;
+            StateTransition matchedTransition = null;
+            for (StateTransition transition : innerAutoTransitions) {
+                if (transition.preState().contains(current)) {
+                    matchedTransition = transition;
                 }
             }
-            if (matchedOperation == null) {
+            if (matchedTransition == null) {
                 break;
             }
             System.out.println(managerKey() + " autoSync: currentState=" + current);
             System.out.println(managerKey() + " autoSync: do something");
-            int newState = matchedOperation.operation(uuid);
+            int newState = matchedTransition.operation(uuid);
             System.out.println(managerKey() + " autoSync: newState=" + newState);
             boolean isSuccess = setState(uuid, newState, current);
             System.out.println(managerKey() + " autoSync: setState result=" + isSuccess);

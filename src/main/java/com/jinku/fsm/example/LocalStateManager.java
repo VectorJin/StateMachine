@@ -3,7 +3,7 @@ package com.jinku.fsm.example;
 import com.jinku.fsm.core.StateAutoSync;
 import com.jinku.fsm.core.StateListener;
 import com.jinku.fsm.core.StateManager;
-import com.jinku.fsm.core.StateOperation;
+import com.jinku.fsm.core.StateTransition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,7 +84,7 @@ public class LocalStateManager extends StateManager {
      * @param args
      */
     public static void main(String[] args) {
-        LocalStateManager localStateManager = new LocalStateManager();
+        StateManager localStateManager = new LocalStateManager();
         final String localManagerKey = localStateManager.managerKey();
 
         /**
@@ -99,7 +99,7 @@ public class LocalStateManager extends StateManager {
 
         String uuid = "123";
         //
-        localStateManager.doOperation(uuid, new StateOperation() {
+        localStateManager.doOperation(uuid, new StateTransition() {
             @Override
             public List<Integer> preState() {
                 List<Integer> list = new ArrayList<>();
@@ -118,7 +118,7 @@ public class LocalStateManager extends StateManager {
         stateAutoSync.register(localStateManager);
 
         // 注册自动状态转移操作
-        localStateManager.registerAutoOp(new StateOperation() {
+        localStateManager.registerAutoTransition(new StateTransition() {
             @Override
             public List<Integer> preState() {
                 List<Integer> list = new ArrayList<>();

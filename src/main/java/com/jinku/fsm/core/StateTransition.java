@@ -2,7 +2,7 @@ package com.jinku.fsm.core;
 
 import java.util.List;
 
-public interface StateOperation {
+public interface StateTransition {
 
     /**
      * 前置状态

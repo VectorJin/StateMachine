@@ -3,14 +3,14 @@ package com.jinku.fsm.example;
 import com.jinku.fsm.core.StateManager;
 
 /**
- * web环境下的状态管理器（数据库保存状态)
+ * 全局状态管理器（比如数据库保存状态)
  * 实现逻辑 跟 本地状态管理器一致，不同之处在于 当前状态读取 和 状态更新
  */
-public class WebStateManager extends StateManager {
+public class GlobalStateManager extends StateManager {
 
     @Override
     public String managerKey() {
-        return "web_state_manager";
+        return "global_state_manager";
     }
 
     @Override
