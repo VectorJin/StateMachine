@@ -1,5 +1,7 @@
 package com.jinku.fsm.core;
 
+import com.jinku.fsm.example.LocalStateManager;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,14 +15,14 @@ public abstract class StateManager {
      *
      * @return
      */
-    abstract String managerKey();
+    public abstract String managerKey();
 
     /**
      * 当前状态
      *
      * @return
      */
-    abstract int currentState(String uuid);
+    public abstract int currentState(String uuid);
 
     /**
      * 更新状态
@@ -29,7 +31,7 @@ public abstract class StateManager {
      * @param newState
      * @param expectState
      */
-    abstract boolean setState(String uuid, int newState, int expectState);
+    public abstract boolean setState(String uuid, int newState, int expectState);
 
     /**
      * 注册状态监听器
@@ -66,15 +68,24 @@ public abstract class StateManager {
         if (!stateOperation.preState().contains(current)) {
             return;
         }
-        int newState = stateOperation.postState();
-        stateOperation.operation(uuid);
-        boolean success = setState(uuid, newState, current);
 
-        if (success) {
-            // 通知
-            List<StateListener> innerListeners = new ArrayList<>(listeners);
-            for (StateListener listener : innerListeners) {
-                listener.stateChanged(uuid, current, newState);
+        System.out.println(managerKey() + " manual do: currentState=" + current);
+        System.out.println(managerKey() + " manual do: do something");
+        int newState = stateOperation.operation(uuid);
+        System.out.println(managerKey()  + " manual do: newState=" + newState);
+        boolean isSuccess = setState(uuid, newState, current);
+        System.out.println(managerKey() + " manual do: setState result=" + isSuccess);
+        if (isSuccess) {
+            try {
+                // 通知
+                List<StateListener> innerListeners = new ArrayList<>(listeners);
+                for (StateListener listener : innerListeners) {
+                    System.out.println(managerKey() + " autoSync: notify listener;oldState=" + current + ";newState=" + newState);
+                    listener.stateChanged(uuid, current, newState);
+                }
+            } catch (Exception e) {
+                System.err.print(managerKey() + " manual do: notify listener exception");
+                e.printStackTrace();
             }
         }
     }
@@ -101,9 +112,25 @@ public abstract class StateManager {
             if (matchedOperation == null) {
                 break;
             }
-            matchedOperation.operation(uuid);
-            int newState = matchedOperation.postState();
+            System.out.println(managerKey() + " autoSync: currentState=" + current);
+            System.out.println(managerKey() + " autoSync: do something");
+            int newState = matchedOperation.operation(uuid);
+            System.out.println(managerKey() + " autoSync: newState=" + newState);
             boolean isSuccess = setState(uuid, newState, current);
+            System.out.println(managerKey() + " autoSync: setState result=" + isSuccess);
+
+            try {
+                // 通知
+                List<StateListener> innerListeners = new ArrayList<>(listeners);
+                for (StateListener listener : innerListeners) {
+                    System.out.println(managerKey() + " autoSync: notify listener;oldState=" + current + ";newState=" + newState);
+                    listener.stateChanged(uuid, current, newState);
+                }
+            } catch (Exception e) {
+                System.err.print(managerKey() + " autoSync: notify listener exception");
+                e.printStackTrace();
+            }
+
             if (isSuccess) {
                 current = newState;
             } else {

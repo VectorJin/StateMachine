@@ -12,14 +12,7 @@ public interface StateOperation {
     List<Integer> preState();
 
     /**
-     * 执行的操作
+     * 执行的操作，返回操作后的状态
      */
-    void operation(String uuid);
-
-    /**
-     * 执行操作后的状态
-     *
-     * @return
-     */
-    int postState();
+    int operation(String uuid);
 }
