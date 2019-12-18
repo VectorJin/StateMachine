@@ -110,8 +110,6 @@ public class LocalStateManager extends StateManager {
             @Override
             public int operation(String uuid) {
                 // do something than change state
-                System.out.println(localManagerKey + " manual do: do something");
-                System.out.println(localManagerKey + " manual do: newState=" + LocalStateEnum.Processing.getRemark());
                 return LocalStateEnum.Processing.state;
             }
         });
