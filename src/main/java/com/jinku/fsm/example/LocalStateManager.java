@@ -99,7 +99,7 @@ public class LocalStateManager extends StateManager {
 
         String uuid = "123";
         //
-        localStateManager.doOperation(uuid, new StateTransition() {
+        localStateManager.doTransition(uuid, new StateTransition() {
             @Override
             public List<Integer> preState() {
                 List<Integer> list = new ArrayList<>();

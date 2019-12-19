@@ -61,7 +61,7 @@ public abstract class StateManager {
      * @param uuid
      * @param transition
      */
-    public void doOperation(String uuid, StateTransition transition) {
+    public void doTransition(String uuid, StateTransition transition) {
         int current = currentState(uuid);
         if (!transition.preState().contains(current)) {
             return;
