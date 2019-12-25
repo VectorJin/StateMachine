@@ -1,4 +1,4 @@
-package com.jinku.fsm.core;
+package com.jinku.fsm.state;
 
 public interface StateListener {
 

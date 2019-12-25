@@ -1,12 +1,28 @@
-package com.jinku.fsm.core;
+package com.jinku.fsm.state;
+
+import com.jinku.fsm.event.AbstractEvent;
+import com.jinku.fsm.event.Dispatcher;
+import com.jinku.fsm.event.EventHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class StateManager {
+public abstract class StateManager<T extends AbstractEvent> implements EventHandler<T> {
 
     private List<StateListener> listeners = new ArrayList<>();
     private List<StateTransition> autoTransitions = new ArrayList<>();
+
+    protected Dispatcher dispatcher;
+
+    public StateManager(Dispatcher dispatcher) {
+        this.dispatcher = dispatcher;
+        init();
+    }
+
+    /**
+     * 初始话方法，子类实现
+     */
+    protected abstract void init();
 
     /**
      * 状态管理器标识
@@ -48,7 +64,7 @@ public abstract class StateManager {
      *
      * @param transition
      */
-    public synchronized void registerAutoTransition(StateTransition transition) {
+    protected void registerAutoTransition(StateTransition transition) {
         if (autoTransitions.contains(transition)) {
             return;
         }
@@ -61,7 +77,7 @@ public abstract class StateManager {
      * @param uuid
      * @param transition
      */
-    public void doTransition(String uuid, StateTransition transition) {
+    protected void doTransition(String uuid, StateTransition transition) {
         int current = currentState(uuid);
         if (!transition.preState().contains(current)) {
             return;

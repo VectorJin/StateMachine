@@ -1,9 +1,10 @@
 package com.jinku.fsm.example;
 
-import com.jinku.fsm.core.StateAutoSync;
-import com.jinku.fsm.core.StateListener;
-import com.jinku.fsm.core.StateManager;
-import com.jinku.fsm.core.StateTransition;
+import com.jinku.fsm.event.AsyncDispatcher;
+import com.jinku.fsm.event.Dispatcher;
+import com.jinku.fsm.state.StateListener;
+import com.jinku.fsm.state.StateManager;
+import com.jinku.fsm.state.StateTransition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,9 +12,32 @@ import java.util.List;
 /**
  * 本地状态管理器
  */
-public class LocalStateManager extends StateManager {
+public class LocalStateManager extends StateManager<LocalStateEvent> {
 
     private volatile LocalStateEnum currentState = LocalStateEnum.Init;
+
+    public LocalStateManager(Dispatcher dispatcher) {
+        super(dispatcher);
+    }
+
+    @Override
+    protected void init() {
+        // 注册自动状态转移操作
+        registerAutoTransition(new StateTransition() {
+            @Override
+            public List<Integer> preState() {
+                List<Integer> list = new ArrayList<>();
+                list.add(LocalStateEnum.Processing.state);
+                return list;
+            }
+
+            @Override
+            public int operation(String uuid) {
+                // do something than change state
+                return LocalStateEnum.Success.getState();
+            }
+        });
+    }
 
     @Override
     public String managerKey() {
@@ -41,12 +65,37 @@ public class LocalStateManager extends StateManager {
         return true;
     }
 
+    @Override
+    public void handle(LocalStateEvent event) {
+        // 处理同步事件
+        if (event.getType() == LocalStateEventType.Sync) {
+            autoSyncState(event.getUuid());
+        }
+
+        if (event.getType() == LocalStateEventType.DoSomething) {
+            doTransition(event.getUuid(), new StateTransition() {
+                @Override
+                public List<Integer> preState() {
+                    List<Integer> list = new ArrayList<>();
+                    list.add(LocalStateEnum.Init.state);
+                    return list;
+                }
+
+                @Override
+                public int operation(String uuid) {
+                    // do something than change state
+                    return LocalStateEnum.Processing.state;
+                }
+            });
+        }
+    }
+
     public enum LocalStateEnum {
 
         Init(0, "初始化"),
         Processing(1, "处理中"),
-        Success(2,"成功"),
-        Failed(3,"失败"),
+        Success(2, "成功"),
+        Failed(3, "失败"),
         ;
 
         int state;
@@ -84,9 +133,8 @@ public class LocalStateManager extends StateManager {
      * @param args
      */
     public static void main(String[] args) {
-        StateManager localStateManager = new LocalStateManager();
-        final String localManagerKey = localStateManager.managerKey();
-
+        Dispatcher asyncDispatcher = new AsyncDispatcher();
+        StateManager localStateManager = new LocalStateManager(asyncDispatcher);
         /**
          * 注册状态变化监听器
          */
@@ -97,43 +145,18 @@ public class LocalStateManager extends StateManager {
             }
         });
 
-        String uuid = "123";
-        //
-        localStateManager.doTransition(uuid, new StateTransition() {
-            @Override
-            public List<Integer> preState() {
-                List<Integer> list = new ArrayList<>();
-                list.add(LocalStateEnum.Init.state);
-                return list;
-            }
+        asyncDispatcher.register(LocalStateEventType.class, localStateManager);
 
-            @Override
-            public int operation(String uuid) {
-                // do something than change state
-                return LocalStateEnum.Processing.state;
-            }
-        });
+        String uuid = "1223333";
+        // 分发事件do something
+        LocalStateEvent localStateEvent = new LocalStateEvent(uuid, LocalStateEventType.DoSomething);
+        asyncDispatcher.dispatch(localStateEvent);
 
-        StateAutoSync stateAutoSync = new StateAutoSync();
-        stateAutoSync.register(localStateManager);
+        // 分发事件同步数据
+        localStateEvent = new LocalStateEvent(uuid, LocalStateEventType.Sync);
+        asyncDispatcher.dispatch(localStateEvent);
 
-        // 注册自动状态转移操作
-        localStateManager.registerAutoTransition(new StateTransition() {
-            @Override
-            public List<Integer> preState() {
-                List<Integer> list = new ArrayList<>();
-                list.add(LocalStateEnum.Processing.state);
-                return list;
-            }
-
-            @Override
-            public int operation(String uuid) {
-                // do something than change state
-                return LocalStateEnum.Success.getState();
-            }
-        });
-
-        // 遍历所有的处理中的uuid，调用 stateAutoSync 自动同步状态
-        stateAutoSync.syncState(uuid, localManagerKey);
+        // 程序退出要关闭分发器
+        asyncDispatcher.shutdown();
     }
 }
