@@ -41,11 +41,11 @@ public class AsyncDispatcher implements Dispatcher {
 
         executor.execute(() -> {
             try {
-                System.out.println("dispatch handle event start;event=" + event);
+                System.out.println("AsyncDispatcher handle event start;event=" + event);
                 eventHandler.handle(event);
-                System.out.println("dispatch handle event end;event=" + event);
+                System.out.println("AsyncDispatcher handle event end;event=" + event);
             } catch (Exception e) {
-                System.out.println("dispatch handle event exception;event=" + event);
+                System.out.println("AsyncDispatcher handle event exception;event=" + event);
                 e.printStackTrace();
             }
         });
@@ -54,6 +54,6 @@ public class AsyncDispatcher implements Dispatcher {
     @Override
     public void shutdown() {
         executor.shutdown();
-        System.out.println("dispatcher shutdown");
+        System.out.println("AsyncDispatcher shutdown");
     }
 }

@@ -2,6 +2,7 @@ package com.jinku.fsm.example;
 
 import com.jinku.fsm.event.AsyncDispatcher;
 import com.jinku.fsm.event.Dispatcher;
+import com.jinku.fsm.event.SyncDispatcher;
 import com.jinku.fsm.state.StateListener;
 import com.jinku.fsm.state.StateManager;
 import com.jinku.fsm.state.StateTransition;
@@ -133,8 +134,9 @@ public class LocalStateManager extends StateManager<LocalStateEvent> {
      * @param args
      */
     public static void main(String[] args) {
-        Dispatcher asyncDispatcher = new AsyncDispatcher();
-        StateManager localStateManager = new LocalStateManager(asyncDispatcher);
+//        Dispatcher dispatcher = new SyncDispatcher();
+        Dispatcher dispatcher = new AsyncDispatcher();
+        StateManager localStateManager = new LocalStateManager(dispatcher);
         /**
          * 注册状态变化监听器
          */
@@ -145,18 +147,18 @@ public class LocalStateManager extends StateManager<LocalStateEvent> {
             }
         });
 
-        asyncDispatcher.register(LocalStateEventType.class, localStateManager);
+        dispatcher.register(LocalStateEventType.class, localStateManager);
 
         String uuid = "1223333";
         // 分发事件do something
         LocalStateEvent localStateEvent = new LocalStateEvent(uuid, LocalStateEventType.DoSomething);
-        asyncDispatcher.dispatch(localStateEvent);
+        dispatcher.dispatch(localStateEvent);
 
         // 分发事件同步数据
         localStateEvent = new LocalStateEvent(uuid, LocalStateEventType.Sync);
-        asyncDispatcher.dispatch(localStateEvent);
+        dispatcher.dispatch(localStateEvent);
 
         // 程序退出要关闭分发器
-        asyncDispatcher.shutdown();
+        dispatcher.shutdown();
     }
 }
